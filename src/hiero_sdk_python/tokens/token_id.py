@@ -9,6 +9,7 @@ Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -18,6 +19,10 @@ from hiero_sdk_python.utils.entity_id_helper import (
     parse_from_string,
     validate_checksum,
 )
+
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.tokens.nft_id import NftId
 
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
@@ -171,3 +176,25 @@ class TokenId:
             int: A hash of the TokenId instance.
         """
         return hash((self.shard, self.realm, self.num))
+
+    def nft(self, serial: int) -> NftId:
+        """Return the NftId corresponding to the given serial number.
+
+        Args:
+            serial: The serial number of the NFT.
+
+        Returns:
+            The NftId corresponding to the specified serial number.
+
+        Raises:
+            TypeError: If serial is not an integer.
+            ValueError: If serial is less than or equal to 0.
+        """
+        if not isinstance(serial, int) or isinstance(serial, bool):
+            raise TypeError("Serial must be an integer.")
+        if serial <= 0:
+            raise ValueError("Serial must be greater than 0.")
+
+        from hiero_sdk_python.tokens.nft_id import NftId
+
+        return NftId(self, serial)

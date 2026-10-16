@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
@@ -87,3 +88,28 @@ def test_token_id_repr():
     # Test with different values
     token_id2 = TokenId(1, 2, 456)
     assert repr(token_id2) == "TokenId(shard=1, realm=2, num=456)"
+
+
+def test_nft_returns_nft_id():
+    """Should return an NftId for the token and the given serial."""
+    token_id = TokenId(0, 0, 1234)
+    nft_id = token_id.nft(1)
+
+    assert isinstance(nft_id, NftId)
+    assert nft_id.token_id == token_id
+    assert nft_id.serial_number == 1
+    assert nft_id == NftId(token_id, 1)
+
+
+@pytest.mark.parametrize("serial", ["1", 1.0, None, True])
+def test_nft_with_non_int_serial(serial):
+    """Should raise TypeError if serial is not an int."""
+    with pytest.raises(TypeError, match="Serial must be an integer"):
+        TokenId(0, 0, 1234).nft(serial)
+
+
+@pytest.mark.parametrize("serial", [0, -1])
+def test_nft_with_non_positive_serial(serial):
+    """Should raise ValueError if serial is not greater than 0."""
+    with pytest.raises(ValueError, match="Serial must be greater than 0"):
+        TokenId(0, 0, 1234).nft(serial)
